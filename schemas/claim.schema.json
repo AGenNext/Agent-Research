@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agennext.dev/schemas/agent-research/claim.schema.json",
+  "title": "AgentResearchClaim",
+  "type": "object",
+  "required": ["id", "objective_id", "statement", "status", "evidence_ids"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^claim-[A-Za-z0-9_-]+$" },
+    "objective_id": { "type": "string" },
+    "statement": { "type": "string", "minLength": 1 },
+    "type": {
+      "type": "string",
+      "enum": ["observation", "inference", "recommendation", "benchmark_result", "market_claim", "technical_claim", "governance_claim"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["unverified", "partially_verified", "verified", "reproduced", "rejected", "superseded", "stale"]
+    },
+    "evidence_ids": { "type": "array", "items": { "type": "string" } },
+    "citation_ids": { "type": "array", "items": { "type": "string" } },
+    "verification_ids": { "type": "array", "items": { "type": "string" } },
+    "limitations": { "type": "array", "items": { "type": "string" } },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": true
+}
