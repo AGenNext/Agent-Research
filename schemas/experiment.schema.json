@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agennext.dev/schemas/agent-research/experiment.schema.json",
+  "title": "AgentResearchExperiment",
+  "type": "object",
+  "required": ["id", "objective_id", "hypothesis_id", "variable_changed", "baseline", "metric", "status"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^exp-[A-Za-z0-9_-]+$" },
+    "objective_id": { "type": "string" },
+    "hypothesis_id": { "type": "string" },
+    "variable_changed": { "type": "string" },
+    "baseline": { "type": "string" },
+    "metric": { "type": "string" },
+    "tier": { "type": "integer", "minimum": 1, "maximum": 3 },
+    "status": {
+      "type": "string",
+      "enum": ["planned", "running", "verified_result_candidate", "failed_with_artifacts", "needs_rerun", "blocked", "archived"]
+    },
+    "environment": { "type": "object" },
+    "commands": { "type": "array", "items": { "type": "string" } },
+    "artifacts": { "type": "array", "items": { "type": "string" } },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": true
+}
