@@ -1,0 +1,231 @@
+openapi: 3.1.0
+info:
+  title: AGenNext Agent-Research Control Plane API
+  version: 0.1.0
+  description: Governed agentic research control plane for workspaces, objectives, evidence, claims, flows, evaluations, reviews, and releases.
+servers:
+  - url: https://api.agennext.dev/agent-research
+paths:
+  /workspaces:
+    post:
+      summary: Create a governed research workspace
+      operationId: createWorkspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+      responses:
+        '201':
+          description: Workspace created
+  /objectives:
+    post:
+      summary: Create a research objective
+      operationId: createObjective
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Objective'
+      responses:
+        '201':
+          description: Objective created
+  /experiments:
+    post:
+      summary: Register an experiment
+      operationId: createExperiment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Experiment'
+      responses:
+        '201':
+          description: Experiment registered
+  /claims:
+    post:
+      summary: Register a claim
+      operationId: createClaim
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Claim'
+      responses:
+        '201':
+          description: Claim registered
+  /citations:
+    post:
+      summary: Register a citation
+      operationId: createCitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Citation'
+      responses:
+        '201':
+          description: Citation registered
+  /flows/{flowId}/runs:
+    post:
+      summary: Start a research flow run
+      operationId: startFlowRun
+      parameters:
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlowRunRequest'
+      responses:
+        '202':
+          description: Flow accepted
+  /reviews:
+    post:
+      summary: Submit a human or agent review decision
+      operationId: createReview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '201':
+          description: Review recorded
+  /releases:
+    post:
+      summary: Create a release candidate or published research snapshot
+      operationId: createRelease
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Release'
+      responses:
+        '201':
+          description: Release created
+components:
+  schemas:
+    Workspace:
+      type: object
+      required: [id, title, owner, status]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        owner:
+          type: string
+        status:
+          type: string
+          enum: [active, suspended, archived]
+    Objective:
+      type: object
+      required: [id, workspace_id, title, status]
+      properties:
+        id:
+          type: string
+        workspace_id:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+          enum: [proposed, scoped, planned, approved, executing, recording, verifying, human_review, release_candidate, published, refresh_watch, archived, rejected, suspended, retired]
+    Experiment:
+      type: object
+      required: [id, objective_id, hypothesis_id, variable_changed, baseline, metric, status]
+      properties:
+        id:
+          type: string
+        objective_id:
+          type: string
+        hypothesis_id:
+          type: string
+        variable_changed:
+          type: string
+        baseline:
+          type: string
+        metric:
+          type: string
+        status:
+          type: string
+    Claim:
+      type: object
+      required: [id, objective_id, statement, status, evidence_ids]
+      properties:
+        id:
+          type: string
+        objective_id:
+          type: string
+        statement:
+          type: string
+        status:
+          type: string
+          enum: [unverified, partially_verified, verified, reproduced, rejected, superseded, stale]
+        evidence_ids:
+          type: array
+          items:
+            type: string
+    Citation:
+      type: object
+      required: [id, title, year, source_type, status]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        year:
+          type: integer
+        source_type:
+          type: string
+        status:
+          type: string
+    FlowRunRequest:
+      type: object
+      required: [objective_id, actor]
+      properties:
+        objective_id:
+          type: string
+        actor:
+          type: string
+        inputs:
+          type: object
+    Review:
+      type: object
+      required: [id, target_type, target_id, reviewer, decision]
+      properties:
+        id:
+          type: string
+        target_type:
+          type: string
+        target_id:
+          type: string
+        reviewer:
+          type: string
+        decision:
+          type: string
+          enum: [approved, approved_with_conditions, rejected, needs_revision]
+    Release:
+      type: object
+      required: [id, objective_id, status]
+      properties:
+        id:
+          type: string
+        objective_id:
+          type: string
+        status:
+          type: string
+          enum: [release_candidate, published, blocked, archived]
