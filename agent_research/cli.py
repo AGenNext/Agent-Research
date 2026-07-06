@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 import typer
 
@@ -7,11 +8,118 @@ from agent_research.core.regression import RegressionGate
 from agent_research.core.report import MarkdownReportGenerator
 from agent_research.core.runner import BenchmarkRunner
 from agent_research.core.summary import SummaryWriter
+from agent_research.platform import FlowEngine, ResearchStore
+from agent_research.platform.models import FlowRun
 
-app = typer.Typer()
-clear_app = typer.Typer()
+app = typer.Typer(help="AGenNext Agent-Research CLI")
+clear_app = typer.Typer(help="CLEARBench evaluation commands")
+flow_app = typer.Typer(help="Governed research flow commands")
 
 app.add_typer(clear_app, name="clear")
+app.add_typer(flow_app, name="flow")
+
+
+def _engine(workspace: str) -> FlowEngine:
+    return FlowEngine(ResearchStore(workspace))
+
+
+def _echo_flow_run(run: FlowRun):
+    typer.echo(f"Flow Run: {run.id}")
+    typer.echo(f"Flow: {run.flow_id}")
+    typer.echo(f"Objective: {run.objective_id}")
+    typer.echo(f"Status: {run.status}")
+    typer.echo(f"Gates: {', '.join(run.gates) if run.gates else 'none'}")
+    for step in run.steps:
+        gate = f" [{step.gate}]" if step.gate else ""
+        typer.echo(f"- {step.id}: {step.status}{gate}")
+
+
+@flow_app.command("init")
+def init_workspace(
+    title: str = "Agent-Research Workspace",
+    owner: str = "human",
+    workspace: str = ".agent-research",
+):
+    """Initialize a local governed research workspace."""
+    created = _engine(workspace).init_workspace(title=title, owner=owner)
+    typer.echo(f"Workspace created: {created.id}")
+    typer.echo(f"State path: {workspace}")
+
+
+@flow_app.command("objective")
+def create_objective(
+    title: str,
+    question: str = "",
+    workspace_id: str = "default",
+    owner: str = "human",
+    domain: str = "agentic-research",
+    workspace: str = ".agent-research",
+):
+    """Create a research objective card."""
+    objective = _engine(workspace).create_objective(
+        title=title,
+        question=question,
+        workspace_id=workspace_id,
+        owner=owner,
+        domain=domain,
+    )
+    typer.echo(f"Objective created: {objective.id}")
+    typer.echo(f"Status: {objective.status}")
+
+
+@flow_app.command("list")
+def list_flows(workspace: str = ".agent-research"):
+    """List built-in executable flows."""
+    engine = _engine(workspace)
+    for flow_id in engine.available_flows():
+        typer.echo(flow_id)
+
+
+@flow_app.command("run")
+def run_flow(
+    flow_id: str,
+    objective_id: str,
+    actor: str = "human",
+    workspace: str = ".agent-research",
+    stop_at_gate: bool = True,
+):
+    """Run a governed research flow until completion or the next gate."""
+    run = _engine(workspace).run_flow(
+        flow_id=flow_id,
+        objective_id=objective_id,
+        actor=actor,
+        stop_at_gate=stop_at_gate,
+    )
+    _echo_flow_run(run)
+
+
+@flow_app.command("approve")
+def approve_gate(
+    run_id: str,
+    actor: str = "human",
+    workspace: str = ".agent-research",
+):
+    """Approve the next waiting gate for a flow run."""
+    run = _engine(workspace).approve_next_gate(run_id=run_id, actor=actor)
+    _echo_flow_run(run)
+
+
+@flow_app.command("status")
+def flow_status(run_id: str, workspace: str = ".agent-research"):
+    """Show a flow run status."""
+    store = ResearchStore(workspace)
+    run = store.load("flows", run_id, FlowRun)
+    _echo_flow_run(run)
+
+
+@flow_app.command("objectives")
+def list_objectives(workspace: str = ".agent-research"):
+    """List local research objectives."""
+    from agent_research.platform.models import Objective
+
+    store = ResearchStore(workspace)
+    for objective in store.list("objectives", Objective):
+        typer.echo(f"{objective.id} | {objective.status} | {objective.title}")
 
 
 @clear_app.command("run")
