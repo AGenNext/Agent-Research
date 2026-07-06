@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agennext.dev/schemas/agent-research/citation.schema.json",
+  "title": "AgentResearchCitation",
+  "type": "object",
+  "required": ["id", "title", "year", "source_type", "status"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^cite-[A-Za-z0-9_-]+$" },
+    "title": { "type": "string", "minLength": 1 },
+    "authors": { "type": "array", "items": { "type": "string" } },
+    "year": { "type": "integer", "minimum": 1800 },
+    "venue": { "type": "string" },
+    "doi": { "type": "string" },
+    "url": { "type": "string" },
+    "identifier": { "type": "string" },
+    "source_type": {
+      "type": "string",
+      "enum": ["paper", "standard", "official_documentation", "repository", "report", "dataset", "benchmark", "article"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["unverified", "verified", "accepted_with_limitations", "rejected", "needs_review", "stale"]
+    },
+    "used_for": { "type": "array", "items": { "type": "string" } },
+    "access_date": { "type": "string", "format": "date" },
+    "refresh_due": { "type": "string", "format": "date" }
+  },
+  "additionalProperties": true
+}
